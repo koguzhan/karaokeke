@@ -31,7 +31,7 @@ git push -u origin main
    - **Instance Type:** Free
 5. **Environment Variables** ekle:
    ```
-   REPLICATE_API_TOKEN=r8_WjxGRv1le9lLfIXt9Gx8oEMFSodkZEw2Oo7dK
+   REPLICATE_API_TOKEN=your_replicate_api_token_here
    PORT=3001
    NODE_ENV=production
    ```
