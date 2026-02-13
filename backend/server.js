@@ -285,20 +285,27 @@ async function processAudio(jobId, url, jobDir) {
                     const whisperData = fs.readFileSync(whisperPath, 'utf-8');
                     let whisperSegments = JSON.parse(whisperData);
 
-                    // Eğer clean text varsa birleştirmeyi dene (eski yöntemle)
+                    // Eğer clean text varsa Whisper zamanlamasını kullan ama metni düzelt
                     if (bestText) {
-                        // Whisper segment formatını uydur
-                        whisperSegments = whisperSegments.map(l => ({
+                        console.log('🔧 Correcting Whisper transcription with clean lyrics...');
+
+                        // Whisper segment formatını normalize et
+                        const whisperLines = whisperSegments.map(l => ({
                             start: l.start,
                             text: l.text ? l.text.trim() : ''
                         })).filter(l => l.text.length > 0);
 
-                        // Burada eski mergeLyrics'i kullanabiliriz çünkü Whisper segmentasyonu zaten dağınık
-                        // Ama şimdilik basitçe Whisper'ı verelim, çünkü kullanıcı Whisper'dan nefret etti.
-                        // Yine de hiç yoktan iyidir.
-                    }
+                        // correctSubtitles fonksiyonunu kullan (YouTube ile aynı mantık)
+                        const correctedLyrics = correctSubtitles(whisperLines, bestText);
 
-                    lyricsPath = whisperPath;
+                        // Düzeltilmiş lyrics'i kaydet
+                        lyricsPath = path.join(jobDir, 'lyrics.json');
+                        fs.writeFileSync(lyricsPath, JSON.stringify(correctedLyrics, null, 2));
+                        console.log('✅ Whisper timing + Clean text merged successfully');
+                    } else {
+                        // Clean text yoksa Whisper'ı olduğu gibi kullan
+                        lyricsPath = whisperPath;
+                    }
                 }
             } catch (err) {
                 console.error('Whisper failed', err);
