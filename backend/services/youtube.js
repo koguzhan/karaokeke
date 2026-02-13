@@ -46,8 +46,63 @@ export async function downloadAudio(url, outputPath) {
     }
     console.log(`🔗 Cleaned URL: ${cleanUrl}`);
 
-    // Önce metadata al
-    const info = await ytDlp.getVideoInfo(cleanUrl);
+    // Önce metadata al - Multi-strategy approach for metadata too
+    let info;
+    const metadataStrategies = [
+      {
+        name: 'Web Client (Standard)',
+        args: [
+          cleanUrl,
+          '--extractor-args', 'youtube:player_client=web',
+          '--no-check-certificates',
+          '--geo-bypass',
+          '--dump-json',
+          '--no-playlist'
+        ]
+      },
+      {
+        name: 'Web Client (No Args)',
+        args: [
+          cleanUrl,
+          '--no-check-certificates',
+          '--geo-bypass',
+          '--dump-json',
+          '--no-playlist'
+        ]
+      },
+      {
+        name: 'Android Client',
+        args: [
+          cleanUrl,
+          '--extractor-args', 'youtube:player_client=android',
+          '--user-agent', 'com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip',
+          '--no-check-certificates',
+          '--geo-bypass',
+          '--dump-json',
+          '--no-playlist'
+        ]
+      }
+    ];
+
+    let metadataError;
+    for (const strategy of metadataStrategies) {
+      try {
+        console.log(`🔄 Trying metadata strategy: ${strategy.name}`);
+        // getVideoInfo doesn't take raw args array nicely in the wrapper, using execPromise to get JSON
+        const output = await ytDlp.execPromise(strategy.args);
+        info = JSON.parse(output);
+        console.log(`✅ Success metadata with: ${strategy.name}`);
+        break;
+      } catch (err) {
+        console.warn(`⚠️ Metadata strategy "${strategy.name}" failed:`, err.message);
+        metadataError = err;
+      }
+    }
+
+    if (!info) {
+      throw metadataError || new Error('Metadata retrieval failed (Bot detection)');
+    }
+
     const videoId = info.id;
     const outputFile = path.join(outputPath, `${videoId}.mp3`);
 
