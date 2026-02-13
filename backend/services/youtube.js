@@ -50,6 +50,8 @@ export async function downloadAudio(url, outputPath) {
         '--sub-format', 'json3',
         '-o', path.join(outputPath, `${videoId}.%(ext)s`),
         '--no-playlist',
+        '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        '--extractor-args', 'youtube:player_client=android',
       ]);
     } catch (subsError) {
       console.warn('⚠️ Subtitle download failed (likely 429 Rate Limit). Retrying without subtitles...', subsError.message);
@@ -61,6 +63,8 @@ export async function downloadAudio(url, outputPath) {
         '--merge-output-format', 'mp4',
         '-o', path.join(outputPath, `${videoId}.%(ext)s`),
         '--no-playlist',
+        '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        '--extractor-args', 'youtube:player_client=android',
       ]);
     }
 
