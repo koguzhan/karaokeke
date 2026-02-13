@@ -140,8 +140,8 @@ async function processAudio(jobId, url, jobDir) {
             message: 'Sahne hazırlanıyor, mikrofon test ediliyor... 🎤',
         });
 
-        const { filePath, metadata, videoPath } = await downloadAudio(url, jobDir);
-        const videoId = path.basename(videoPath, '.mp4');
+        const { filePath, metadata } = await downloadAudio(url, jobDir);
+        const videoId = metadata.videoId;
 
         // 2. Vokal separation continues...
 
@@ -314,7 +314,7 @@ async function processAudio(jobId, url, jobDir) {
             files: {
                 instrumental: `/uploads/${jobId}/instrumental.mp3`,
                 vocals: `/uploads/${jobId}/vocals.mp3`,
-                video: `/uploads/${jobId}/${path.basename(videoPath)}`,
+                video: null,
                 lyrics: lyricsPath ? `/uploads/${jobId}/lyrics.json` : null,
                 rawLyrics: bestText ? `/uploads/${jobId}/lyrics_raw.txt` : null
             },

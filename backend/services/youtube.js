@@ -85,6 +85,7 @@ export async function downloadAudio(url, outputPath) {
       filePath: audioFile,
       videoPath: null, // Artık video indirmiyoruz
       metadata: {
+        videoId: videoId,
         title: info.title || 'Unknown',
         duration: info.duration || 0,
         artist: info.uploader || 'Unknown',
