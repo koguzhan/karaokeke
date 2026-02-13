@@ -40,10 +40,16 @@ const processingJobs = new Map();
  */
 app.post('/api/process', async (req, res) => {
     try {
+        console.log('📩 Incoming request body:', req.body);
         const { url } = req.body;
 
+        console.log('🔍 Validating URL:', url);
+        const isValid = isValidYouTubeUrl(url);
+        console.log('✅ Validation result:', isValid);
+
         // URL validasyonu
-        if (!url || !isValidYouTubeUrl(url)) {
+        if (!url || !isValid) {
+            console.error('❌ Invalid URL rejected:', url);
             return res.status(400).json({
                 success: false,
                 error: 'Geçerli bir YouTube URL\'si girin',
