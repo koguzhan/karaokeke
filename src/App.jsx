@@ -65,9 +65,8 @@ function App() {
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-            {/* Animated Background */}
-            {/* Animated Background (Default) */}
-            {!jobStatus?.files?.video && (
+            {/* Animated Background (Default - when not playing) */}
+            {!jobStatus?.metadata?.thumbnail && (
                 <div className="absolute inset-0 -z-10">
                     <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse-slow"></div>
                     <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-600/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
@@ -75,19 +74,15 @@ function App() {
                 </div>
             )}
 
-            {/* Real Background Video (Karaoke Mode) */}
-            {jobStatus?.files?.video && (
+            {/* YouTube Thumbnail Background (Karaoke Mode) */}
+            {jobStatus?.metadata?.thumbnail && stage === 'player' && (
                 <div className="fixed inset-0 -z-10 select-none pointer-events-none">
-                    <video
-                        ref={videoRef}
-                        src={`${API_BASE}${jobStatus.files.video}`}
-                        className="w-full h-full object-cover"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
+                    <img
+                        src={jobStatus.metadata.thumbnail}
+                        alt="Video background"
+                        className="w-full h-full object-cover scale-110 animate-slow-zoom"
                     />
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"></div>
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-xl"></div>
                 </div>
             )}
 
