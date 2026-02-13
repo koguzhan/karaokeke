@@ -1,5 +1,5 @@
 # Backend Dockerfile for Render
-FROM node:18-bullseye
+FROM node:18-bookworm
 
 # Install Python, pip, ffmpeg (required for yt-dlp and audio processing)
 RUN apt-get update && apt-get install -y \
