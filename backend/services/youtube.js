@@ -37,60 +37,53 @@ export async function downloadAudio(url, outputPath) {
     const videoId = info.id;
     const outputFile = path.join(outputPath, `${videoId}.mp3`);
 
-    // Audio indir
-    // Audio ve Altyazı indir (Deneme 1)
+    // Audio indir (Sadece ses, video değil - daha az kısıtlama)
+    // Önce altyazı ile dene
     try {
       await ytDlp.execPromise([
         url,
-        '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best', // Force MP4
-        '--merge-output-format', 'mp4',
+        '-f', 'bestaudio/best',  // Sadece audio (video değil)
+        '-x',  // Extract audio
+        '--audio-format', 'mp3',
         '--write-subs',
         '--write-auto-subs',
         '--sub-lang', 'tr,en',
         '--sub-format', 'json3',
         '-o', path.join(outputPath, `${videoId}.%(ext)s`),
         '--no-playlist',
-        '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        '--extractor-args', 'youtube:player_client=android',
+        '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        '--extractor-args', 'youtube:player_client=android,web',
+        '--no-check-certificates',
+        '--geo-bypass',
       ]);
     } catch (subsError) {
       console.warn('⚠️ Subtitle download failed (likely 429 Rate Limit). Retrying without subtitles...', subsError.message);
 
-      // Fallback: Sadece Video/Audio indir (Altyazısız)
+      // Fallback: Sadece Audio indir (Altyazısız)
       await ytDlp.execPromise([
         url,
-        '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-        '--merge-output-format', 'mp4',
+        '-f', 'bestaudio/best',
+        '-x',
+        '--audio-format', 'mp3',
         '-o', path.join(outputPath, `${videoId}.%(ext)s`),
         '--no-playlist',
-        '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        '--extractor-args', 'youtube:player_client=android',
+        '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        '--extractor-args', 'youtube:player_client=android,web',
+        '--no-check-certificates',
+        '--geo-bypass',
       ]);
     }
 
-    const videoFile = path.join(outputPath, `${videoId}.mp4`);
+    // yt-dlp artık direkt MP3 çıkarıyor (-x --audio-format mp3 ile)
     const audioFile = path.join(outputPath, `${videoId}.mp3`);
 
-    console.log(`✅ Video downloaded: ${videoFile}`);
-
-    // Extract audio using ffmpeg
-    const { exec } = await import('child_process');
-    const { promisify } = await import('util');
-    const execAsync = promisify(exec);
-
-    try {
-      console.log('🎵 Extracting audio from video...');
-      await execAsync(`ffmpeg -i "${videoFile}" -vn -acodec libmp3lame -q:a 2 "${audioFile}"`);
-      console.log(`✅ Audio extracted: ${audioFile}`);
-    } catch (ffmpegError) {
-      console.error('❌ FFmpeg extraction failed:', ffmpegError);
-      throw new Error('Audio extraction failed');
-    }
+    // Video dosyası yok artık, sadece audio var
+    console.log(`✅ Audio downloaded and extracted: ${audioFile}`);
 
     return {
       success: true,
       filePath: audioFile,
-      videoPath: videoFile,
+      videoPath: null, // Artık video indirmiyoruz
       metadata: {
         title: info.title || 'Unknown',
         duration: info.duration || 0,
