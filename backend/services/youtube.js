@@ -56,36 +56,35 @@ export async function downloadAudio(url, outputPath) {
     let info;
     const metadataStrategies = [
       {
-        name: 'Web Client (Standard)',
+        name: 'Default (Nightly Best)',
         args: [
           cleanUrl,
-          '--extractor-args', 'youtube:player_client=web',
+          '--dump-json',
+          '--no-playlist',
           '--no-check-certificates',
           '--geo-bypass',
-          '--dump-json',
-          '--no-playlist'
         ]
       },
       {
-        name: 'Web Client (No Args)',
+        name: 'iOS Client',
         args: [
           cleanUrl,
+          '--extractor-args', 'youtube:player_client=ios',
+          '--dump-json',
+          '--no-playlist',
           '--no-check-certificates',
           '--geo-bypass',
-          '--dump-json',
-          '--no-playlist'
         ]
       },
       {
-        name: 'Android Client',
+        name: 'TV Client',
         args: [
           cleanUrl,
-          '--extractor-args', 'youtube:player_client=android',
-          '--user-agent', 'com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip',
+          '--extractor-args', 'youtube:player_client=tv',
+          '--dump-json',
+          '--no-playlist',
           '--no-check-certificates',
           '--geo-bypass',
-          '--dump-json',
-          '--no-playlist'
         ]
       }
     ];
@@ -113,73 +112,63 @@ export async function downloadAudio(url, outputPath) {
     const outputFile = path.join(outputPath, `${videoId}.mp3`);
 
     // Audio indir - Multi-strategy approach to bypass bot detection
+    // Audio indir - Multi-strategy approach to bypass bot detection
     const strategies = [
       {
-        name: 'Simple Web Client (Default)',
+        name: 'Default (Nightly Best)',
         args: [
           cleanUrl,
           '-f', 'bestaudio/best',
           '-x',
           '--audio-format', 'mp3',
-          '--write-subs',
-          '--write-auto-subs',
-          '--sub-lang', 'tr,en',
-          '--sub-format', 'json3',
-          '-o', path.join(outputPath, `${videoId}.%(ext)s`),
           '--no-playlist',
           '--no-check-certificates',
           '--geo-bypass',
+          // No user-agent or extractor-args -> Let yt-dlp nightly choose the best
+          '-o', path.join(outputPath, `${videoId}.%(ext)s`),
         ]
       },
       {
-        name: 'Web Client (Spoofed)',
+        name: 'iOS Client (Robust)',
         args: [
           cleanUrl,
           '-f', 'bestaudio/best',
           '-x',
           '--audio-format', 'mp3',
-          '--write-subs',
-          '--write-auto-subs',
-          '--sub-lang', 'tr,en',
-          '--sub-format', 'json3',
-          '-o', path.join(outputPath, `${videoId}.%(ext)s`),
+          '--extractor-args', 'youtube:player_client=ios',
           '--no-playlist',
-          '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+          '--no-check-certificates',
+          '--geo-bypass',
+          '-o', path.join(outputPath, `${videoId}.%(ext)s`),
+        ]
+      },
+      {
+        name: 'TV Client (Backup)',
+        args: [
+          cleanUrl,
+          '-f', 'bestaudio/best',
+          '-x',
+          '--audio-format', 'mp3',
+          '--extractor-args', 'youtube:player_client=tv',
+          '--no-playlist',
+          '--no-check-certificates',
+          '--geo-bypass',
+          '-o', path.join(outputPath, `${videoId}.%(ext)s`),
+        ]
+      },
+      {
+        name: 'Web Client (Legacy)',
+        args: [
+          cleanUrl,
+          '-f', 'bestaudio/best',
+          '-x',
+          '--audio-format', 'mp3',
           '--extractor-args', 'youtube:player_client=web',
-          '--no-check-certificates',
-          '--geo-bypass',
-        ]
-      },
-      {
-        name: 'Android Client',
-        args: [
-          cleanUrl,
-          '-f', 'bestaudio/best',
-          '-x',
-          '--audio-format', 'mp3',
-          '--write-subs',
-          '--write-auto-subs',
-          '--sub-lang', 'tr,en',
-          '--sub-format', 'json3',
-          '-o', path.join(outputPath, `${videoId}.%(ext)s`),
-          '--no-playlist',
-          '--user-agent', 'com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip',
-          '--extractor-args', 'youtube:player_client=android',
-          '--no-check-certificates',
-          '--geo-bypass',
-        ]
-      },
-      {
-        name: 'Web Client (No Subtitles)',
-        args: [
-          cleanUrl,
-          '-f', 'bestaudio/best',
-          '-x',
-          '--audio-format', 'mp3',
-          '-o', path.join(outputPath, `${videoId}.%(ext)s`),
+          '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           '--no-playlist',
           '--no-check-certificates',
           '--geo-bypass',
+          '-o', path.join(outputPath, `${videoId}.%(ext)s`),
         ]
       }
     ];
