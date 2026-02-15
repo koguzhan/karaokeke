@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# Install yt-dlp globally
-RUN pip3 install yt-dlp --break-system-packages
+# Install yt-dlp nightly globally (to ensure latest fixes)
+RUN pip3 install -U --pre "yt-dlp[default]" --break-system-packages
 
 # Set working directory
 WORKDIR /app

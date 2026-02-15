@@ -6,3 +6,6 @@ dist/
 *.log
 backend/uploads/
 .vercel
+*.webm
+*.mp4
+*.sh
