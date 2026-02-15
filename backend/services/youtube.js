@@ -56,9 +56,42 @@ export async function downloadAudio(url, outputPath) {
     let info;
     const metadataStrategies = [
       {
-        name: 'Default (Nightly Best)',
+        name: 'Default (Nightly)',
         args: [
           cleanUrl,
+          '--dump-json',
+          '--no-playlist',
+          '--no-check-certificates',
+          '--geo-bypass',
+        ]
+      },
+      {
+        name: 'Android Creator',
+        args: [
+          cleanUrl,
+          '--extractor-args', 'youtube:player_client=android_creator',
+          '--dump-json',
+          '--no-playlist',
+          '--no-check-certificates',
+          '--geo-bypass',
+        ]
+      },
+      {
+        name: 'Mobile Web (MWeb)',
+        args: [
+          cleanUrl,
+          '--extractor-args', 'youtube:player_client=mweb',
+          '--dump-json',
+          '--no-playlist',
+          '--no-check-certificates',
+          '--geo-bypass',
+        ]
+      },
+      {
+        name: 'TV Embedded',
+        args: [
+          cleanUrl,
+          '--extractor-args', 'youtube:player_client=tv_embedded',
           '--dump-json',
           '--no-playlist',
           '--no-check-certificates',
@@ -70,17 +103,6 @@ export async function downloadAudio(url, outputPath) {
         args: [
           cleanUrl,
           '--extractor-args', 'youtube:player_client=ios',
-          '--dump-json',
-          '--no-playlist',
-          '--no-check-certificates',
-          '--geo-bypass',
-        ]
-      },
-      {
-        name: 'TV Client',
-        args: [
-          cleanUrl,
-          '--extractor-args', 'youtube:player_client=tv',
           '--dump-json',
           '--no-playlist',
           '--no-check-certificates',
@@ -113,9 +135,10 @@ export async function downloadAudio(url, outputPath) {
 
     // Audio indir - Multi-strategy approach to bypass bot detection
     // Audio indir - Multi-strategy approach to bypass bot detection
+    // Audio indir - Multi-strategy approach to bypass bot detection
     const strategies = [
       {
-        name: 'Default (Nightly Best)',
+        name: 'Default (Nightly)',
         args: [
           cleanUrl,
           '-f', 'bestaudio/best',
@@ -124,47 +147,59 @@ export async function downloadAudio(url, outputPath) {
           '--no-playlist',
           '--no-check-certificates',
           '--geo-bypass',
-          // No user-agent or extractor-args -> Let yt-dlp nightly choose the best
           '-o', path.join(outputPath, `${videoId}.%(ext)s`),
         ]
       },
       {
-        name: 'iOS Client (Robust)',
+        name: 'Android Creator',
+        args: [
+          cleanUrl,
+          '-f', 'bestaudio/best',
+          '-x',
+          '--audio-format', 'mp3',
+          '--extractor-args', 'youtube:player_client=android_creator',
+          '--no-playlist',
+          '--no-check-certificates',
+          '--geo-bypass',
+          '-o', path.join(outputPath, `${videoId}.%(ext)s`),
+        ]
+      },
+      {
+        name: 'Mobile Web (MWeb)',
+        args: [
+          cleanUrl,
+          '-f', 'bestaudio/best',
+          '-x',
+          '--audio-format', 'mp3',
+          '--extractor-args', 'youtube:player_client=mweb',
+          '--no-playlist',
+          '--no-check-certificates',
+          '--geo-bypass',
+          '-o', path.join(outputPath, `${videoId}.%(ext)s`),
+        ]
+      },
+      {
+        name: 'TV Embedded',
+        args: [
+          cleanUrl,
+          '-f', 'bestaudio/best',
+          '-x',
+          '--audio-format', 'mp3',
+          '--extractor-args', 'youtube:player_client=tv_embedded',
+          '--no-playlist',
+          '--no-check-certificates',
+          '--geo-bypass',
+          '-o', path.join(outputPath, `${videoId}.%(ext)s`),
+        ]
+      },
+      {
+        name: 'iOS Client',
         args: [
           cleanUrl,
           '-f', 'bestaudio/best',
           '-x',
           '--audio-format', 'mp3',
           '--extractor-args', 'youtube:player_client=ios',
-          '--no-playlist',
-          '--no-check-certificates',
-          '--geo-bypass',
-          '-o', path.join(outputPath, `${videoId}.%(ext)s`),
-        ]
-      },
-      {
-        name: 'TV Client (Backup)',
-        args: [
-          cleanUrl,
-          '-f', 'bestaudio/best',
-          '-x',
-          '--audio-format', 'mp3',
-          '--extractor-args', 'youtube:player_client=tv',
-          '--no-playlist',
-          '--no-check-certificates',
-          '--geo-bypass',
-          '-o', path.join(outputPath, `${videoId}.%(ext)s`),
-        ]
-      },
-      {
-        name: 'Web Client (Legacy)',
-        args: [
-          cleanUrl,
-          '-f', 'bestaudio/best',
-          '-x',
-          '--audio-format', 'mp3',
-          '--extractor-args', 'youtube:player_client=web',
-          '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           '--no-playlist',
           '--no-check-certificates',
           '--geo-bypass',
