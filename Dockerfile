@@ -8,7 +8,8 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# Install yt-dlp nightly globally (to ensure latest fixes)
+# Install yt-dlp nightly globally (force update 2026-02-15)
+ARG CACHEBUST=1
 RUN pip3 install -U --pre "yt-dlp[default]" --break-system-packages
 
 # Set working directory

@@ -18,7 +18,13 @@ if (fs.existsSync(binaryPath)) {
   console.log(`Using local yt-dlp binary at: ${binaryPath}`);
   ytDlp = new YTDlpWrap(binaryPath);
 } else {
-  console.warn('⚠️ Local yt-dlp binary not found. Trying to use system binary.');
+  console.warn('⚠️ Local yt-dlp binary not found. Using system binary (global).');
+  // Check version for debugging
+  try {
+    const { execSync } = await import('child_process');
+    const version = execSync('yt-dlp --version', { encoding: 'utf-8' }).trim();
+    console.log(`ℹ️ System yt-dlp version: ${version}`);
+  } catch (e) { console.warn('⚠️ Could not determine system yt-dlp version'); }
   ytDlp = new YTDlpWrap();
 }
 

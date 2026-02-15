@@ -13,8 +13,8 @@ async function ensureYtDlp() {
     // Check if global yt-dlp exists (e.g. in Docker)
     try {
         const { execSync } = await import('child_process');
-        execSync('yt-dlp --version', { stdio: 'ignore' });
-        console.log('✅ Global yt-dlp found (skipping local download).');
+        const version = execSync('yt-dlp --version', { encoding: 'utf-8' }).trim();
+        console.log(`✅ Global yt-dlp found: ${version} (skipping local download).`);
         return;
     } catch (e) {
         // Global not found, proceed to check local
