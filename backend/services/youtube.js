@@ -2,44 +2,90 @@ import YTDlpWrapPkg from 'yt-dlp-wrap';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import os from 'os';
+import { downloadWithCobalt } from './cobalt.js';
+import { downloadWithRapidAPI } from './rapidapi.js';
+
+// ... existing imports ...
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Handle the ES Module import structure for yt-dlp-wrap
-const YTDlpWrap = YTDlpWrapPkg.default || YTDlpWrapPkg;
+// yt-dlp binary path (one level up from services/)
+const ytDlpBinaryPath = path.join(__dirname, '..', 'yt-dlp');
 
-// Path to the local yt-dlp binary
-const binaryPath = path.join(__dirname, '..', 'yt-dlp');
-
-// Check if local binary exists, otherwise fallback to potential system path (or fail gracefully)
+// Initialize yt-dlp wrap
 let ytDlp;
-if (fs.existsSync(binaryPath)) {
-  console.log(`Using local yt-dlp binary at: ${binaryPath}`);
-  ytDlp = new YTDlpWrap(binaryPath);
-} else {
-  console.warn('⚠️ Local yt-dlp binary not found. Using system binary (global).');
-  // Check version for debugging
-  try {
-    const { execSync } = await import('child_process');
-    const version = execSync('yt-dlp --version', { encoding: 'utf-8' }).trim();
-    console.log(`ℹ️ System yt-dlp version: ${version}`);
-  } catch (e) { console.warn('⚠️ Could not determine system yt-dlp version'); }
-  ytDlp = new YTDlpWrap();
+try {
+  // Check if default export exists (ESM/CommonJS interop)
+  const YTDlpWrapClass = YTDlpWrapPkg.default || YTDlpWrapPkg;
+  ytDlp = new YTDlpWrapClass(ytDlpBinaryPath);
+} catch (e) {
+  console.error('Failed to initialize yt-dlp wrapper:', e);
 }
 
-/**
- * YouTube'dan audio dosyasını indirir
- * @param {string} url - YouTube video URL
- * @param {string} outputPath - Çıktı dosya yolu
- * @returns {Promise<{success: boolean, filePath: string, metadata: object, videoPath: string|null}>}
- */
+// ... inside downloadAudio ...
 export async function downloadAudio(url, outputPath) {
+  // 1. ÖNCE RAPIDAPI DENE (En Kurumsal Çözüm)
   try {
-    console.log(`📥 Downloading audio from: ${url}`);
+    if (process.env.RAPIDAPI_KEY) {
+      console.log('💎 Trying RapidAPI first (Premium/Robust)...');
+      const result = await downloadWithRapidAPI(url, outputPath);
+      return result;
+    } else {
+      console.log('⏩ RAPIDAPI_KEY yok, Cobalt/Local yöntemlerine geçiliyor...');
+    }
+  } catch (rapidError) {
+    console.warn('⚠️ RapidAPI failed, falling back:', rapidError.message);
+  }
+
+  // 2. SONRA COBALT API DENE (ŞU AN KAPALI - ERİŞİM SORUNU)
+  /*
+  try {
+    console.log('🔄 Trying Cobalt API...');
+    const result = await downloadWithCobalt(url, outputPath);
+    return result;
+  } catch (cobaltError) {
+    console.warn('⚠️ Cobalt API failed, falling back to local yt-dlp:', cobaltError.message);
+  }
+  */
+
+  // 3. EN SON LOCAL YT-DLP (Fallback)
+
+
+
+  try {
+    console.log(`📥 Downloading audio with yt-dlp from: ${url}`);
 
     // Temiz URL oluştur (parametresiz)
     let cleanUrl = url;
+    // Cookie dosyasını ara:
+    // 1. Backend klasörü (Local)
+    // 2. Root klasörü (Local fallback)
+    // 3. /tmp klasörü (Vercel/Linux production)
+    let cookiesPath = path.join(process.cwd(), 'cookies.txt');
+
+    if (!fs.existsSync(cookiesPath)) {
+      const rootCookies = path.join(process.cwd(), '..', 'cookies.txt');
+      if (fs.existsSync(rootCookies)) {
+        cookiesPath = rootCookies;
+      } else if (os.platform() === 'linux') {
+        // Vercel environment check
+        const tmpCookies = path.join('/tmp', 'cookies.txt');
+        if (fs.existsSync(tmpCookies)) {
+          cookiesPath = tmpCookies;
+        }
+      }
+    }
+
+    const hasCookies = fs.existsSync(cookiesPath);
+    if (hasCookies) {
+      console.log(`🍪 Using cookies from: ${cookiesPath}`);
+    } else {
+      console.warn('⚠️ No cookies file found in backend or root. YouTube might block requests.');
+      console.warn('👉 Please create cookies.txt in the root directory.');
+    }
+
     try {
       const parsed = new URL(url);
       if (parsed.hostname.includes('youtube.com')) {
@@ -54,15 +100,27 @@ export async function downloadAudio(url, outputPath) {
 
     // Önce metadata al - Multi-strategy approach for metadata too
     let info;
+
+    // Common metadata args
+    const commonMetaArgs = [
+      '--dump-json',
+      '--no-playlist',
+      '--no-check-certificates',
+      '--geo-bypass',
+      // Explicitly set node path to fix "No supported JavaScript runtime" warning
+      '--js-runtimes', 'node:/usr/local/bin/node',
+    ];
+
+    if (hasCookies) {
+      commonMetaArgs.push('--cookies', cookiesPath);
+    }
+
     const metadataStrategies = [
       {
         name: 'Default (Nightly)',
         args: [
           cleanUrl,
-          '--dump-json',
-          '--no-playlist',
-          '--no-check-certificates',
-          '--geo-bypass',
+          ...commonMetaArgs
         ]
       },
       {
@@ -70,10 +128,7 @@ export async function downloadAudio(url, outputPath) {
         args: [
           cleanUrl,
           '--extractor-args', 'youtube:player_client=android_creator',
-          '--dump-json',
-          '--no-playlist',
-          '--no-check-certificates',
-          '--geo-bypass',
+          ...commonMetaArgs
         ]
       },
       {
@@ -133,20 +188,28 @@ export async function downloadAudio(url, outputPath) {
     const videoId = info.id;
     const outputFile = path.join(outputPath, `${videoId}.mp3`);
 
-    // Audio indir - Multi-strategy approach to bypass bot detection
-    // Audio indir - Multi-strategy approach to bypass bot detection
+    // Common args
+    const commonArgs = [
+      '--no-playlist',
+      '--no-check-certificates',
+      '--geo-bypass',
+      '--js-runtimes', 'node:/usr/local/bin/node',
+    ];
+
+    if (hasCookies) {
+      commonArgs.push('--cookies', cookiesPath);
+    }
+
     // Audio indir - Multi-strategy approach to bypass bot detection
     const strategies = [
       {
-        name: 'Default (Nightly)',
+        name: 'Default (Nightly) + Cookies',
         args: [
           cleanUrl,
           '-f', 'bestaudio/best',
           '-x',
           '--audio-format', 'mp3',
-          '--no-playlist',
-          '--no-check-certificates',
-          '--geo-bypass',
+          ...commonArgs,
           '-o', path.join(outputPath, `${videoId}.%(ext)s`),
         ]
       },
@@ -158,9 +221,7 @@ export async function downloadAudio(url, outputPath) {
           '-x',
           '--audio-format', 'mp3',
           '--extractor-args', 'youtube:player_client=android_creator',
-          '--no-playlist',
-          '--no-check-certificates',
-          '--geo-bypass',
+          ...commonArgs,
           '-o', path.join(outputPath, `${videoId}.%(ext)s`),
         ]
       },
@@ -172,9 +233,7 @@ export async function downloadAudio(url, outputPath) {
           '-x',
           '--audio-format', 'mp3',
           '--extractor-args', 'youtube:player_client=mweb',
-          '--no-playlist',
-          '--no-check-certificates',
-          '--geo-bypass',
+          ...commonArgs,
           '-o', path.join(outputPath, `${videoId}.%(ext)s`),
         ]
       },
@@ -186,9 +245,7 @@ export async function downloadAudio(url, outputPath) {
           '-x',
           '--audio-format', 'mp3',
           '--extractor-args', 'youtube:player_client=tv_embedded',
-          '--no-playlist',
-          '--no-check-certificates',
-          '--geo-bypass',
+          ...commonArgs,
           '-o', path.join(outputPath, `${videoId}.%(ext)s`),
         ]
       },
@@ -200,9 +257,7 @@ export async function downloadAudio(url, outputPath) {
           '-x',
           '--audio-format', 'mp3',
           '--extractor-args', 'youtube:player_client=ios',
-          '--no-playlist',
-          '--no-check-certificates',
-          '--geo-bypass',
+          ...commonArgs,
           '-o', path.join(outputPath, `${videoId}.%(ext)s`),
         ]
       }

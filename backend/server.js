@@ -13,9 +13,13 @@ import { fetchGeniusLyrics } from './services/genius.js';
 import { fetchGoogleLyrics } from './services/lyricfind.js';
 import { parseYouTubeSubtitles } from './services/subtitle_parser.js';
 import stringSimilarity from 'string-similarity';
+import { ensureCookiesFile } from './utils/cookies.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Initialize Cookies
+ensureCookiesFile();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
