@@ -628,7 +628,7 @@ function capitalize(s) {
     if (!s) return '';
     return s.charAt(0).toUpperCase() + s.slice(1);
 }
-app.listen(PORT, () => {
-    console.log(`🚀 Karaoke backend running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Karaoke backend running on http://0.0.0.0:${PORT}`);
     console.log(`📁 Upload directory: ${UPLOAD_DIR}`);
 });
