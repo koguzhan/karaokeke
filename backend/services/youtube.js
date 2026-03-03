@@ -65,7 +65,7 @@ export async function downloadAudio(url, outputPath) {
         cookiesPath = rootCookies;
       } else if (os.platform() === 'linux') {
         // Vercel environment check
-        const tmpCookies = path.join('/tmp', 'cookies.txt');
+        const tmpCookies = '/tmp/cookies.txt';
         if (fs.existsSync(tmpCookies)) {
           cookiesPath = tmpCookies;
         }

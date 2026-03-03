@@ -14,8 +14,8 @@ const isLinux = platform === 'linux';
 
 // On Vercel (Linux), we must use /tmp because the project root is read-only
 const binaryPath = isLinux
-    ? path.join('/tmp', 'yt-dlp')
-    : path.join(__dirname, 'yt-dlp');
+    ? '/tmp/yt-dlp'
+    : path.resolve(__dirname, 'yt-dlp');
 
 console.log(`🖥️ Platform: ${platform}`);
 console.log(`📂 Target yt-dlp path: ${binaryPath}`);
