@@ -16,33 +16,20 @@ export async function downloadWithRapidAPI(url, outputPath) {
         throw new Error('RAPIDAPI_KEY env variable eksik. RapidAPI kullanılamıyor.');
     }
 
-    const videoId = new URL(url).searchParams.get('v');
+    const parsedUrl = new URL(url);
+    let videoId = parsedUrl.searchParams.get('v');
+    if (!videoId && parsedUrl.hostname === 'youtu.be') {
+        videoId = parsedUrl.pathname.slice(1); // Remove leading slash
+    }
+
     if (!videoId) throw new Error('Geçersiz YouTube URL (Video ID bulunamadı)');
 
-    // YENİ HOST: 'youtube-mp3-downloader2' (Mp3Downy)
-    // Bu API daha güvenilir ve kotası genellikle daha yüksektir.
-    // Kullanıcının eskisi (to-mp4-and-mp3...) doldu.
-    const rapidApiHost = process.env.RAPIDAPI_HOST || 'youtube-mp3-downloader2.p.rapidapi.com';
+    const rapidApiHost = process.env.RAPIDAPI_HOST || 'youtube-mp36.p.rapidapi.com';
 
     console.log(`🚀 RapidAPI başlatılıyor: ${rapidApiHost}`);
 
-    let endpoint = '';
-    let params = {};
-
-    // Host kontrolü ve endpoint seçimi
-    if (rapidApiHost.includes('youtube-mp3-downloader2')) {
-        // Mp3Downy endpoint yapısı: /ytmp3/ytmp3/
-        endpoint = `https://${rapidApiHost}/ytmp3/ytmp3/`;
-        params = { url: url };
-    } else if (rapidApiHost.includes('youtube-to-mp4-and-mp3-downloader2')) {
-        // Eski API (Kota dolu olabilir ama yine de destekleyelim)
-        endpoint = `https://${rapidApiHost}/dl`;
-        params = { id: videoId };
-    } else {
-        // Varsayılan /dl
-        endpoint = `https://${rapidApiHost}/dl`;
-        params = { id: videoId };
-    }
+    let endpoint = `https://${rapidApiHost}/dl`;
+    let params = { id: videoId };
 
     try {
         const options = {
@@ -60,7 +47,7 @@ export async function downloadWithRapidAPI(url, outputPath) {
         let downloadUrl = response.data.link || response.data.url || response.data.dlink || response.data.mp3 || response.data.download_url;
 
         if (!downloadUrl) {
-            throw new Error(`RapidAPI yanıtı geçersiz (Link yok). Kota dolmuş olabilir: ${JSON.stringify(response.data)}`);
+            throw new Error(`RapidAPI yanıtı geçersiz (Link yok). ${JSON.stringify(response.data)}`);
         }
 
         console.log(`✅ RapidAPI İndirme Linki alındı.`);

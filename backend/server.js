@@ -4,6 +4,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import { downloadAudio, isValidYouTubeUrl } from './services/youtube.js';
 import { separateVocals } from './services/separator.js';
@@ -23,7 +24,11 @@ ensureCookiesFile();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
+
+// Use /tmp for Vercel/Linux production, otherwise local __dirname/uploads
+const UPLOAD_DIR = os.platform() === 'linux'
+    ? path.join('/tmp', 'uploads')
+    : path.join(__dirname, 'uploads');
 
 // Middleware
 app.use(cors());
