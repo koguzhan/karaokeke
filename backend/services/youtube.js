@@ -6,23 +6,12 @@ import os from 'os';
 import { downloadWithCobalt } from './cobalt.js';
 import { downloadWithRapidAPI } from './rapidapi.js';
 
+import { ensureYtDlp } from '../ensure_ytdlp.js';
+
 // ... existing imports ...
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// yt-dlp binary path (one level up from services/)
-const ytDlpBinaryPath = path.join(__dirname, '..', 'yt-dlp');
-
-// Initialize yt-dlp wrap
-let ytDlp;
-try {
-  // Check if default export exists (ESM/CommonJS interop)
-  const YTDlpWrapClass = YTDlpWrapPkg.default || YTDlpWrapPkg;
-  ytDlp = new YTDlpWrapClass(ytDlpBinaryPath);
-} catch (e) {
-  console.error('Failed to initialize yt-dlp wrapper:', e);
-}
 
 // ... inside downloadAudio ...
 export async function downloadAudio(url, outputPath) {
@@ -56,6 +45,11 @@ export async function downloadAudio(url, outputPath) {
 
   try {
     console.log(`📥 Downloading audio with yt-dlp from: ${url}`);
+
+    // Ensure yt-dlp is available in the environment (downloads to /tmp on Vercel)
+    const binaryPath = await ensureYtDlp();
+    const YTDlpWrapClass = YTDlpWrapPkg.default || YTDlpWrapPkg;
+    const ytDlp = new YTDlpWrapClass(binaryPath);
 
     // Temiz URL oluştur (parametresiz)
     let cleanUrl = url;

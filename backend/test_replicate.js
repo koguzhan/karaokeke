@@ -8,7 +8,8 @@ const replicate = new Replicate({
 async function test() {
     console.log('Testing Replicate...');
     // Short audio clip for testing
-    const audio = "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/WFMU/Broke_For_Free/Directionless_EP/Broke_For_Free_-_01_-_Night_Owl.mp3";
+    // Testing with YouTube URL
+    const audio = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
     try {
         console.log('Calling Replicate API...');

@@ -20,7 +20,7 @@ const binaryPath = isLinux
 console.log(`🖥️ Platform: ${platform}`);
 console.log(`📂 Target yt-dlp path: ${binaryPath}`);
 
-async function ensureYtDlp() {
+export async function ensureYtDlp() {
     // 1. Check if global yt-dlp exists (e.g. in Docker/Local)
     try {
         const { execSync } = await import('child_process');
@@ -45,7 +45,7 @@ async function ensureYtDlp() {
         } catch (e) {
             console.log('⚠️ Binary exists but is not writable. Skipping update.');
         }
-        return;
+        return binaryPath;
     }
 
     // 3. Download if missing
@@ -73,6 +73,7 @@ async function ensureYtDlp() {
         // Fallback: copy from local if we committed it? No, we don't commit binaries usually.
         throw error;
     }
+    return binaryPath;
 }
 
 async function updateYtDlp() {
@@ -87,4 +88,8 @@ async function updateYtDlp() {
     }
 }
 
-ensureYtDlp();
+// If run directly (e.g., via `npm run prestart`), execute it
+import { pathToFileURL } from 'url';
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+    ensureYtDlp().catch(console.error);
+}
