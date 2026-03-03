@@ -8,7 +8,8 @@
     "prestart": "node ensure_ytdlp.js",
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "npm install"
+    "build": "npm install",
+    "buildnpm": "npm install"
   },
   "keywords": [
     "karaoke",
