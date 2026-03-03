@@ -11,7 +11,14 @@ import { pipeline } from 'stream/promises';
  * @returns {Promise<{success: boolean, filePath: string, metadata: object}>}
  */
 export async function downloadWithRapidAPI(url, outputPath) {
-    const rapidApiKey = process.env.RAPIDAPI_KEY;
+    let rapidApiKey = process.env.RAPIDAPI_KEY;
+
+    // YENİ EK: Tarayıcı subagent'ın Dashboard'a anahtarı 3 kez yapıştırma hatasını düzelt
+    if (rapidApiKey && rapidApiKey.length > 50) {
+        console.warn(`⚠️ RAPIDAPI_KEY is suspiciously long (${rapidApiKey.length} chars). Truncating to 50 chars.`);
+        rapidApiKey = rapidApiKey.substring(0, 50).trim();
+    }
+
     if (!rapidApiKey) {
         throw new Error('RAPIDAPI_KEY env variable eksik. RapidAPI kullanılamıyor.');
     }
