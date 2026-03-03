@@ -11,7 +11,8 @@ import { pipeline } from 'stream/promises';
  * @returns {Promise<{success: boolean, filePath: string, metadata: object}>}
  */
 export async function downloadWithRapidAPI(url, outputPath) {
-    let rapidApiKey = process.env.RAPIDAPI_KEY;
+    let rapidApiKey = process.env.RAPIDAPI_KEY || '0f3439c8e1mshbcda1e9474d9669p1e0700jsnb0173201093c';
+
 
     // YENİ EK: Tarayıcı subagent'ın Dashboard'a anahtarı 3 kez yapıştırma hatasını düzelt
     if (rapidApiKey && rapidApiKey.length > 50) {
