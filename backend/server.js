@@ -144,6 +144,46 @@ app.get('/api/download/:jobId/:type', (req, res) => {
 });
 
 /**
+ * GET /api/test-rapidapi
+ * Debug Endpoint to check if RapidAPI bans Render IP or if ENV is wrong
+ */
+app.get('/api/test-rapidapi', async (req, res) => {
+    const axios = (await import('axios')).default;
+    const rapidApiKey = '0f3439c8e1mshbcda1e9474d9669p1e0700jsnb0173201093c';
+    const rapidApiHost = 'youtube-mp36.p.rapidapi.com';
+    let endpoint = `https://${rapidApiHost}/dl`;
+    let params = { id: 'opInxIY7WKo' };
+
+    try {
+        const response = await axios.request({
+            method: 'GET',
+            url: endpoint,
+            params: params,
+            headers: {
+                'x-rapidapi-key': rapidApiKey,
+                'x-rapidapi-host': rapidApiHost
+            }
+        });
+        res.json({
+            success: true,
+            testedKey: rapidApiKey.substring(0, 5) + '...',
+            envKey: process.env.RAPIDAPI_KEY ? process.env.RAPIDAPI_KEY.substring(0, 5) + '...' : 'MISSING',
+            envLength: process.env.RAPIDAPI_KEY ? process.env.RAPIDAPI_KEY.length : 0,
+            data: response.data
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            testedKey: rapidApiKey.substring(0, 5) + '...',
+            envKey: process.env.RAPIDAPI_KEY ? process.env.RAPIDAPI_KEY.substring(0, 5) + '...' : 'MISSING',
+            envLength: process.env.RAPIDAPI_KEY ? process.env.RAPIDAPI_KEY.length : 0,
+            errorStatus: error.response ? error.response.status : 'N/A',
+            errorData: error.response ? error.response.data : error.message
+        });
+    }
+});
+
+/**
  * Audio işleme fonksiyonu
  */
 async function processAudio(jobId, url, jobDir) {
