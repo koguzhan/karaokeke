@@ -14,14 +14,24 @@ export function ensureCookiesFile() {
         return null;
     }
 
+    let decodedContent = cookiesContent;
+    if (!cookiesContent.includes('.youtube.com') && !cookiesContent.includes('# Netscape')) {
+        try {
+            decodedContent = Buffer.from(cookiesContent, 'base64').toString('utf-8');
+            console.log('🔄 YOUTUBE_COOKIES successfully decoded from base64.');
+        } catch (e) {
+            console.warn('⚠️ Failed to decode YOUTUBE_COOKIES from base64. Using raw string.');
+        }
+    }
+
     try {
         // Determine path based on platform (like ensure_ytdlp.js)
         const isLinux = os.platform() === 'linux';
         const cookiesPath = isLinux
-            ? path.join('/tmp', 'cookies.txt')
-            : path.join(process.cwd(), 'cookies.txt');
+            ? '/tmp/cookies.txt'
+            : path.resolve(process.cwd(), 'cookies.txt');
 
-        fs.writeFileSync(cookiesPath, cookiesContent, 'utf-8');
+        fs.writeFileSync(cookiesPath, decodedContent, 'utf-8');
         console.log(`✅ YouTube cookies written to: ${cookiesPath}`);
         return cookiesPath;
     } catch (error) {
