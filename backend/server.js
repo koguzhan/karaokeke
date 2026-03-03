@@ -183,6 +183,31 @@ app.get('/api/test-rapidapi', async (req, res) => {
     }
 });
 
+app.get('/api/debug-cookies', (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
+
+    let cookiesPath = path.join(process.cwd(), 'cookies.txt');
+    let exists = fs.existsSync(cookiesPath);
+    let size = exists ? fs.statSync(cookiesPath).size : 0;
+
+    let rootCookies = path.join(process.cwd(), '..', 'cookies.txt');
+    let rootExists = fs.existsSync(rootCookies);
+    let rootSize = rootExists ? fs.statSync(rootCookies).size : 0;
+
+    res.json({
+        cwd: process.cwd(),
+        backendExists: exists,
+        backendSize: size,
+        backendPath: cookiesPath,
+        rootExists: rootExists,
+        rootSize: rootSize,
+        rootPath: rootCookies,
+        ytDlpPath: process.env.YT_DLP_BINARY || 'N/A',
+        envTarget: process.env.YOUTUBE_COOKIES ? 'SET' : 'NOT_SET'
+    });
+});
+
 /**
  * Audio işleme fonksiyonu
  */
