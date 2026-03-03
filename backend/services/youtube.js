@@ -175,8 +175,14 @@ export async function downloadAudio(url, outputPath) {
     for (const strategy of metadataStrategies) {
       try {
         console.log(`🔄 Trying metadata strategy: ${strategy.name}`);
+
+        let argsToRun = [...strategy.args];
+        if (hasCookies) {
+          argsToRun.push('--cookies', cookiesPath);
+        }
+
         // getVideoInfo doesn't take raw args array nicely in the wrapper, using execPromise to get JSON
-        const output = await ytDlp.execPromise(strategy.args);
+        const output = await ytDlp.execPromise(argsToRun);
         info = JSON.parse(output);
         console.log(`✅ Success metadata with: ${strategy.name}`);
         break;
