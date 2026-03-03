@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 export async function downloadAudio(url, outputPath) {
   // 1. ÖNCE RAPIDAPI DENE (En Kurumsal Çözüm)
   try {
-    if (process.env.RAPIDAPI_KEY) {
+    if (process.env.RAPIDAPI_KEY && false) { // ❌ RapidAPI Cloudflare IP Block Yüzünden Kapatıldı
       console.log('💎 Trying RapidAPI first (Premium/Robust)...');
       const result = await downloadWithRapidAPI(url, outputPath);
       return result;
