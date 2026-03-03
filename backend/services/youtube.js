@@ -60,6 +60,7 @@ export async function downloadAudio(url, outputPath) {
     // 2. Root klasörü (Local fallback)
     // 3. /tmp klasörü (Vercel/Linux production)
     let cookiesPath = path.join(process.cwd(), 'cookies.txt');
+    console.log(`🔍 Initial cookies search path: ${cookiesPath}`);
 
     if (!fs.existsSync(cookiesPath)) {
       const rootCookies = path.join(process.cwd(), '..', 'cookies.txt');
@@ -76,10 +77,18 @@ export async function downloadAudio(url, outputPath) {
 
     const hasCookies = fs.existsSync(cookiesPath);
     if (hasCookies) {
-      console.log(`🍪 Using cookies from: ${cookiesPath}`);
+      console.log(`🍪 Using cookies from [FOUND]: ${cookiesPath}`);
+      const stats = fs.statSync(cookiesPath);
+      console.log(`🍪 Cookie file size: ${stats.size} bytes`);
     } else {
+      console.warn(`⚠️ No cookies file found at searched path: ${cookiesPath}`);
       console.warn('⚠️ No cookies file found in backend or root. YouTube might block requests.');
       console.warn('👉 Please create cookies.txt in the root directory.');
+
+      // Let's also list directory contents of cwd for debugging
+      try {
+        console.log(`📂 cwd contents (${process.cwd()}):`, fs.readdirSync(process.cwd()));
+      } catch (e) { }
     }
 
     try {
