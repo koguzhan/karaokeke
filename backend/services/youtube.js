@@ -22,10 +22,12 @@ export async function downloadAudio(url, outputPath) {
       const result = await downloadWithRapidAPI(url, outputPath);
       return result;
     } else {
-      console.log('⏩ RAPIDAPI_KEY yok, Cobalt/Local yöntemlerine geçiliyor...');
+      console.log('⏩ RAPIDAPI_KEY yok, yt-dlp yöntemine geçiliyor...');
     }
   } catch (rapidError) {
-    console.warn('⚠️ RapidAPI failed, falling back:', rapidError.message);
+    console.warn('⚠️ RapidAPI failed:', rapidError.message);
+    // FALLBACK İPTAL EDİP DOĞRUDAN HATAYI DÖN (Hata Ayıklama İçin)
+    throw new Error(`RapidAPI Hatası (Gerçek Sebep): ${rapidError.message} / ${rapidError.response?.data ? JSON.stringify(rapidError.response.data) : ''}`);
   }
 
   // 2. SONRA COBALT API DENE (ŞU AN KAPALI - ERİŞİM SORUNU)
